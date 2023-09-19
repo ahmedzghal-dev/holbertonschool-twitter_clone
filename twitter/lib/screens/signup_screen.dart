@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-
-import '../widgets/entry_field.dart';
-import '../widgets/flat_button.dart';
+import 'package:provider/provider.dart';
+import 'package:twitter/screens/home_screen.dart';
+import 'package:twitter/widgets/entry_field.dart';
+import 'package:twitter/widgets/flat_button.dart';
+import '../providers/auth_state.dart';
 
 class SignUp extends StatefulWidget {
-  const SignUp({super.key});
-
+  const SignUp({
+    super.key,
+  });
   @override
   State<SignUp> createState() => _SignUpState();
 }
@@ -37,6 +40,7 @@ class _SignUpState extends State<SignUp> {
 
   @override
   Widget build(BuildContext context) {
+    final Auth auth = Provider.of<Auth>(context);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -66,7 +70,7 @@ class _SignUpState extends State<SignUp> {
                 ),
               ),
               CustomEntryField(
-                controller: _emailController,
+                controller: _nameController,
                 hint: 'Enter name',
               ),
               CustomEntryField(
@@ -74,18 +78,71 @@ class _SignUpState extends State<SignUp> {
                 hint: 'Enter email',
               ),
               CustomEntryField(
-                controller: _emailController,
+                controller: _passwordController,
                 hint: 'Enter password',
                 isPassword: true,
               ),
               CustomEntryField(
-                controller: _emailController,
+                controller: _confirmController,
                 hint: 'Confirm password',
                 isPassword: true,
               ),
               CustomFlatButton(
+                fontWeight: FontWeight.bold,
                 label: 'Submit',
-                onPressed: () {},
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    try {
+                      final result = await auth.attemptSignUp(
+                        _emailController.text,
+                        _nameController.text,
+                        _passwordController.text,
+                        _confirmController.text,
+                      );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: result == Errors.none
+                              ? const Text('Account Created!')
+                              : result == Errors.weakError
+                                  ? const Text(
+                                      'The password provided is too weak.')
+                                  : result == Errors.matchError
+                                      ? const Text('Passwords don’t match')
+                                      : result == Errors.existsError
+                                          ? const Text(
+                                              'An account already exists with that email.')
+                                          : const Text(
+                                              'Failed to create account! Please try later'),
+                          duration: const Duration(seconds: 3),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
+                          width: 300,
+                          action: SnackBarAction(
+                            label: 'Dismiss',
+                            onPressed: () {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                            },
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      print(
+                          "************* error in signup methods! **************");
+                    }
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeScreen()),
+                  );
+                },
               ),
             ],
           ),

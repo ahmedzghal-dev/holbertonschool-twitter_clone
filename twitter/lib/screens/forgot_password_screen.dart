@@ -67,6 +67,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                 ),
                 const CustomFlatButton(
                   label: 'Submit',
+                  fontWeight: FontWeight.bold,
                   //onPressed: () {},
                 ),
               ],
